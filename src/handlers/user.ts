@@ -36,17 +36,6 @@ const show = async (req: Request, res: Response) => {
 
 const create = async (req: Request, res: Response) => {
     try {
-        const authorizationHeader = req.headers.authorization as String;
-        const token = authorizationHeader.split(" ")[1].slice(1, -1);
-        jwt.verify(token, process.env.TOKEN_SECRET as string) as JwtPayload;
-    } catch (err) {
-        console.log(err);
-        res.status(401);
-        res.json(err);
-        return;
-    }
-
-    try {
         const user: User = {
             firstName: req.body.firstName,
             lastName: req.body.lastName,
