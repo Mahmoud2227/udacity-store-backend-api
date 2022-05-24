@@ -10,47 +10,62 @@ These are the notes from a meeting with the frontend developer that describe wha
 
 -   Index: `'products/' [GET]`
 -   Show: `'products/:id' [GET]`
--   Create (args: Product)[token required]: `'products/' [POST] (token)`
--   [ADDED] Delete: `'products/:id [DELETE]`
+-   Create (args: Product) [token required]: `'products/' [POST] (token)`
+-   Delete (args: id) [token required]: `'products [DELETE] (token)`
+-   Update (args: Product) [token required]: `'products/ [PUT] (token)`
 
 #### Users
 
--   Index [token required]: `'users/' [GET] (token)`
--   Show [token required]: `'users/:id' [GET] (token)`
--   Create (args: User)[token required]: `'users/' [POST] (token)`
--   [ADDED] Delete [token required]: `'users/:id' [DELETE] (token)`
--   [ADDED] Update [token required]: `'users/:id' [PUT] (token)`
--   [ADDED] Authenticate : `'users/:id/authenticate' [POST] (token)`
+-   Index: `'users/' [GET]`
+-   Show: `'users/:id' [GET]`
+-   Create (args: User) [token required]: `'users/' [POST] (token)`
+-   Delete (args: id) [token required]: `'users/' [DELETE] (token)`
+-   Update (args: User) [token required]: `'users/' [PUT] (token)`
 
 #### Orders
 
--   Index : `'/orders' [GET]`
--   Show Order by id: `'orders/current/:user_id' [GET]`
--   [ADDED]Create Order [token required] : `'orders/' [POST](token)`
--   [ADDED]Add product to the order by user_id : `"/orders/:id/products`
+-   Index [token required] : `'orders/' [GET](token)`
+-   Show Order by id [token required] : `'orders/:id' [GET](token)`
+-   Create Order (args: Order) [token required] : `'orders/' [POST](token)`
+-   Delete Order (args: id) [token required]: `'orders/' [DELETE](token)`
+-   Update Order (args: Order) [token required]: `'orders/' [PUT](token)`
+-   Add product to the order (args: quantity,order_id,product_id) [token required] : `"/orders/:id/products [PUT](token)`
 
 ## Data Shapes
 
-#### Product
+#### Products
 
--   id
--   name
--   price
--   [OPTIONAL] category
--   [OPTIONAL] description
+| Data        | Data Types   | Constraints |
+| ----------- | ------------ | ----------- |
+| id          | SERIAL       | PRIMARY KEY |
+| name        | VARCHAR(100) | NOT NULL    |
+| category    | VARCHAR(100) |             |
+| price       | INT          | NOT NULL    |
+| description | Text         |             |
 
-#### User
+#### Users
 
--   id
--   firstName
--   lastName
--   userName
--   password
+| Data      | Data Types   | Constraints |
+| --------- | ------------ | ----------- |
+| id        | SERIAL       | PRIMARY KEY |
+| firstName | VARCHAR(100) | NOT NULL    |
+| lastName  | VARCHAR(100) | NOT NULL    |
+| userName  | VARCHAR(100) | NOT NULL    |
+| password  | VARCHAR      | NOT NULL    |
 
 #### Orders
 
--   id
--   id of product in the order
--   quantity of product in the order
--   user_id
--   status of order
+| Data    | Data Types  | Constraints          |
+| ------- | ----------- | -------------------- |
+| id      | SERIAL      | PRIMARY KEY          |
+| status  | VARCHAR(15) | NOT NULL             |
+| user_id | INT         | REFERENCES users(id) |
+
+#### Orders_products Table
+
+| Data       | Data Types | Constraints             |
+| ---------- | ---------- | ----------------------- |
+| id         | SERIAL     | PRIMARY KEY             |
+| quantity   | INT        |                         |
+| order_id   | bigint     | REFERENCES orders(id)   |
+| product_id | bigint     | REFERENCES products(id) |
