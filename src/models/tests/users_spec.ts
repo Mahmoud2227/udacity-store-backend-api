@@ -1,4 +1,4 @@
-import { UserModel } from "../user";
+import { User, UserModel } from "../user";
 import app from "../../server";
 import jwt from "jsonwebtoken";
 import supertest from "supertest";
@@ -35,6 +35,63 @@ describe("User Model Methods", () => {
 
     it("should have a update method", () => {
         expect(user.update).toBeDefined();
+    });
+
+    it("create method should add a User", async () => {
+        const result = await user.create(newUser as User);
+        expect(result as unknown).toEqual({
+            id: 1,
+            firstname: "John",
+            lastname: "Doe",
+            username: "johndoe",
+        });
+    });
+
+    it("index method should return a list of users", async () => {
+        const result = await user.index();
+
+        expect(result as unknown).toEqual([
+            {
+                id: 1,
+                firstname: "John",
+                lastname: "Doe",
+                username: "johndoe",
+            },
+        ]);
+    });
+
+    it("show method should return the correct User", async () => {
+        const result = await user.show(1);
+        expect(result as unknown).toEqual({
+            id: 1,
+            firstname: "John",
+            lastname: "Doe",
+            username: "johndoe",
+        });
+    });
+
+    it("update method should update the User", async () => {
+        const result = await user.update({
+            id: 1,
+            firstName: "test update",
+            lastName: "test update",
+            userName: "test update",
+            password: "password5212",
+        });
+
+        expect(result as unknown).toEqual({
+            id: 1,
+            firstname: "test update",
+            lastname: "test update",
+            username: "test update",
+        });
+    });
+
+    it("delete method should remove the User", async () => {
+        user.delete(1);
+        const result = await user.index();
+
+        expect(result).toEqual([]);
     });
 
     describe("Testing Users Endpoints.", () => {
@@ -109,59 +166,3 @@ describe("User Model Methods", () => {
         });
     });
 });
-//     it("create method should add a User", async () => {
-//         const result: UserReturnType = await user.create({
-//             firstName: "John",
-//             lastName: "Doe",
-//             userName: "jon123",
-//             password: "123456",
-//         });
-//         console.log(result);
-//         const token: string = process.env.TEST_TOKEN as string;
-//         // @ts-ignore
-//         expect(result).toEqual({
-//             id: 1,
-//             firstname: "John",
-//             lastname: "Doe",
-//             username: "jon123",
-//             password: "$2b$10$EKeK2Aq8KUOBRaApHb6Rn.1FXMcfpqZd1H9H1scKeQMzBignZF5ma",
-//         });
-//     });
-
-//     it("index method should return a list of users", async () => {
-//         const result: UserReturnType[] = await user.index();
-//         expect(result).toEqual([
-//             {
-//                 id: 1,
-//                 firstname: "John",
-//                 lastname: "Doe",
-//                 username: "jon123",
-//                 password: "$2b$10$EKeK2Aq8KUOBRaApHb6Rn.1FXMcfpqZd1H9H1scKeQMzBignZF5ma",
-//             },
-//         ]);
-//     });
-
-//     it("show method should return the correct User", async () => {
-//         const result: UserReturnType = await user.show(1);
-//         expect(result).toEqual({
-//             id: 1,
-//             firstname: "John",
-//             lastname: "Doe",
-//             username: "jon123",
-//             password: "$2b$10$EKeK2Aq8KUOBRaApHb6Rn.1FXMcfpqZd1H9H1scKeQMzBignZF5ma",
-//         });
-//     });
-
-//     it("delete method should remove the User", async () => {
-//         user.delete(1);
-//         const result = await user.index();
-
-//         expect(result).toEqual([]);
-//     });
-
-//     it("authenticate method should return the correct User", async () => {
-//         const result = await user.authenticate("jon123", "123456");
-//         // @ts-ignore
-//         expect(result).toEqual({ token: process.env.TEST_TOKEN as string });
-//     });
-// });

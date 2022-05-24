@@ -33,6 +33,7 @@ const create = async (req: Request, res: Response) => {
         const newOrder = await storeOrder.create(order);
         return res.json(newOrder);
     } catch (err) {
+        console.log(err);
         res.status(400).json(err);
     }
 };

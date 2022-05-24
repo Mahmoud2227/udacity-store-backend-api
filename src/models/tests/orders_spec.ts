@@ -1,4 +1,4 @@
-import { OrderModel } from "../order";
+import { Order, OrderModel } from "../order";
 import app from "../../server";
 import jwt from "jsonwebtoken";
 import supertest from "supertest";
@@ -37,6 +37,64 @@ describe("Order Model Methods", () => {
     it("should have a add product to order method", () => {
         expect(order.addProduct).toBeDefined();
     });
+
+    it("create method should add a Order", async () => {
+        const result = await order.create({
+            status: "pending",
+            user_id: "1",
+        } as Order);
+        expect(result).toEqual({
+            id: 1,
+            status: "pending",
+            user_id: "1",
+        });
+    });
+
+    it("index method should return a list of orders", async () => {
+        const result = await order.index();
+        expect(result).toEqual([
+            {
+                id: 1,
+                status: "pending",
+                user_id: "1",
+            },
+        ]);
+    });
+
+    it("show method should return the correct order", async () => {
+        const result = await order.show(1);
+        expect(result).toEqual({
+            id: 1,
+            status: "pending",
+            user_id: "1",
+        });
+    });
+
+    it("update method should return the updated order", async () => {
+        const result = await order.update(1, "shipped");
+        expect(result).toEqual({
+            id: 1,
+            status: "shipped",
+            user_id: "1",
+        });
+    });
+
+    it("delete method should remove the Order", async () => {
+        await order.delete(1);
+        const result = await order.index();
+
+        expect(result).toEqual([]);
+    });
+
+    it("addProduct method should add a product to the order", async () => {
+        const result = await order.addProduct(18, "1", "1");
+        expect(result).toEqual({
+            id: 1,
+            quantity: 18,
+            product_id: 1,
+            order_id: 1,
+        } as unknown as Order);
+    });
 });
 
 describe("Testing order Endpoints.", () => {
@@ -64,6 +122,7 @@ describe("Testing order Endpoints.", () => {
         });
         expect(response.status).toBe(401);
     });
+
     it("POST /orders with providing a token", async () => {
         const response = await request
             .post("/orders")

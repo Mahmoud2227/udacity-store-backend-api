@@ -4,7 +4,7 @@
     "description": "This repo contains a basic Node and Express app to get you started in constructing an API. To get started, clone this repo and run `yarn` in your terminal at the project root.",
     "main": "index.js",
     "scripts": {
-        "test": "cross-env ENV=test && db-migrate up --config ./database.json -e test && yarn run tsc && jasmine && db-migrate reset --config ./database.json -e test",
+        "test": "set ENV=test && db-migrate up --config ./database.json -e test && yarn run tsc && jasmine && db-migrate reset --config ./database.json -e test",
         "watch": "tsc-watch --esModuleInterop src/server.ts --outDir ./dist --onSuccess \"node ./dist/server.js\"",
         "tsc": "tsc",
         "start": "npm run tsc && node dist/server.js"
