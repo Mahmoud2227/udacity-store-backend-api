@@ -1,13 +1,6 @@
 import client from "../database";
 
 export interface Product {
-    name: string;
-    category: string;
-    price: number;
-    description: string;
-}
-
-export interface ProductReturnType {
     id: number;
     name: string;
     category: string;
@@ -15,8 +8,8 @@ export interface ProductReturnType {
     description: string;
 }
 
-export class ClothesStore {
-    async index(): Promise<ProductReturnType[]> {
+export class ProductModel {
+    async index(): Promise<Product[]> {
         try {
             const conn = await client.connect();
             const sql = "SELECT * FROM products";
@@ -31,7 +24,7 @@ export class ClothesStore {
         }
     }
 
-    async show(id: number): Promise<ProductReturnType> {
+    async show(id: number): Promise<Product> {
         try {
             const sql = "SELECT * FROM products WHERE id=($1)";
 
@@ -47,7 +40,7 @@ export class ClothesStore {
         }
     }
 
-    async create(p: Product): Promise<ProductReturnType> {
+    async create(p: Product): Promise<Product> {
         try {
             const sql =
                 "INSERT INTO products (name, category, price, description) VALUES($1, $2, $3, $4) RETURNING *";
@@ -66,9 +59,9 @@ export class ClothesStore {
         }
     }
 
-    async delete(id: number): Promise<ProductReturnType> {
+    async delete(id: number): Promise<Product> {
         try {
-            const sql = "DELETE FROM products WHERE id=($1)";
+            const sql = "DELETE FROM products WHERE id=($1) RETURNING *";
 
             const conn = await client.connect();
 
@@ -81,6 +74,31 @@ export class ClothesStore {
             return product;
         } catch (err) {
             throw new Error(`Could not delete Product ${id}. Error: ${err}`);
+        }
+    }
+
+    async update(p: Product) {
+        try {
+            const sql =
+                "UPDATE products SET name=($1), category=($2), price=($3), description=($4) WHERE id=($5) RETURNING *";
+
+            const conn = await client.connect();
+
+            const result = await conn.query(sql, [
+                p.name,
+                p.category,
+                p.price,
+                p.description,
+                p.id,
+            ]);
+
+            const product = result.rows[0];
+
+            conn.release();
+
+            return product;
+        } catch (err) {
+            throw new Error(`Could not update Product ${p.id}. Error: ${err}`);
         }
     }
 }

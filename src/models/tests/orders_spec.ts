@@ -1,8 +1,22 @@
-import { OrderProduct, OrderReturnType, OrderModel, Order } from "../order";
+import { OrderModel } from "../order";
+import app from "../../server";
+import jwt from "jsonwebtoken";
+import supertest from "supertest";
 
-const order: OrderModel = new OrderModel();
+const order = new OrderModel();
 
-describe("order Model", () => {
+const request = supertest(app);
+
+const newUser = {
+    firstName: "John",
+    lastName: "Doe",
+    userName: "johndoe",
+    password: "password123",
+};
+
+const token = jwt.sign(newUser, process.env.TOKEN_SECRET as string);
+
+describe("Order Model Methods", () => {
     it("should have an index method", () => {
         expect(order.index).toBeDefined();
     });
@@ -14,45 +28,87 @@ describe("order Model", () => {
     it("should have a create method", () => {
         expect(order.create).toBeDefined();
     });
+    it("should have a update method", () => {
+        expect(order.update).toBeDefined();
+    });
+    it("A method that delete an order", () => {
+        expect(order.delete).toBeDefined();
+    });
+    it("should have a add product to order method", () => {
+        expect(order.addProduct).toBeDefined();
+    });
+});
 
-    it("create method should add a order", async () => {
-        const result = await order.create({
-            status: "open",
-            user_id: 1,
-        });
-        const token: string = process.env.TEST_TOKEN as string;
-        // @ts-ignore
-        expect(result).toEqual(token);
+describe("Testing order Endpoints.", () => {
+    it("GET /orders without a token", async () => {
+        const response = await request.get("/orders");
+        expect(response.status).toBe(401);
+    });
+    it("GET /orders with a token", async () => {
+        const response = await request.get("/orders").set("Authorization", `Bearer ${token}`);
+        expect(response.status).toBe(200);
     });
 
-    it("index method should return a list of orders", async () => {
-        const result: OrderReturnType[] = await order.index();
-        expect(result).toEqual([
-            {
-                id: 1,
-                status: "open",
+    it("GET /orders/:id without a token ", async () => {
+        const response = await request.get("/orders/1");
+        expect(response.status).toBe(401);
+    });
+    it("GET /orders/:id with a token ", async () => {
+        const response = await request.get("/orders/1").set("Authorization", `Bearer ${token}`);
+        expect(response.status).toBe(200);
+    });
+    it("POST /orders without a token", async () => {
+        const response = await request.post("/orders").send({
+            status: "testing order",
+            user_id: 1,
+        });
+        expect(response.status).toBe(401);
+    });
+    it("POST /orders with providing a token", async () => {
+        const response = await request
+            .post("/orders")
+            .send({
+                status: "testing order",
                 user_id: 1,
-            },
-        ]);
+            })
+            .set("Authorization", `Bearer ${token}`);
+        expect(response.status).toBe(200);
     });
 
-    it("show method should return the correct order", async () => {
-        const result: OrderReturnType = await order.show(1);
-        expect(result).toEqual({
+    it("PUT /orders without providing a token", async () => {
+        const response = await request.put("/orders").send({
             id: 1,
-            status: "open",
+            status: "updated",
             user_id: 1,
         });
+        expect(response.status).toBe(401);
     });
 
-    it("show method should add a product to the order", async () => {
-        // @ts-ignore
-        const result: OrderProduct = await order.addProduct(5, "1", "1");
-        expect(result).toEqual({
+    it("PUT /orders with providing a token", async () => {
+        const response = await request
+            .put("/orders")
+            .send({
+                id: 1,
+                status: "updated",
+                user_id: 1,
+            })
+            .set("Authorization", `Bearer ${token}`);
+        expect(response.status).toBe(200);
+    });
+    it("DELETE /orders without providing a token", async () => {
+        const response = await request.delete("/orders").send({
             id: 1,
-            quantity: 5,
-            product_id: "1",
-            order_id: "1",
         });
+        expect(response.status).toBe(401);
+    });
+
+    it("DELETE /orders with providing a token", async () => {
+        const response = await request
+            .delete("/orders")
+            .send({
+                id: 1,
+            })
+            .set("Authorization", `Bearer ${token}`);
+        expect(response.status).toBe(200);
     });
 });

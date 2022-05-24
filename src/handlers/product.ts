@@ -1,69 +1,75 @@
-import express, { Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import { Product, ClothesStore } from "../models/product";
+import { Application, Request, Response } from "express";
+import { verifyAuthToken } from "../middleware/verifyAuthToken";
+import { Product, ProductModel } from "../models/product";
 
-const store = new ClothesStore();
+const store = new ProductModel();
 
 const index = async (_req: Request, res: Response) => {
-    const products = await store.index();
-    res.json(products);
+    try {
+        const products = await store.index();
+        return res.send(products);
+    } catch (err) {
+        res.status(401).json(err);
+    }
 };
 
 const show = async (req: Request, res: Response) => {
-    const product = await store.show(req.body.id);
-    res.json(product);
+    try {
+        const product = await store.show(+req.params.id);
+        return res.send(product);
+    } catch (err) {
+        res.status(401).json(err);
+    }
 };
 
 const create = async (req: Request, res: Response) => {
-    try {
-        const authorizationHeader = req.headers.authorization as String;
-
-        const token: string = authorizationHeader.split(" ")[1].slice(1, -1);
-        jwt.verify(token as string, process.env.TOKEN_SECRET as string);
-    } catch (err) {
-        res.status(401);
-        return res.json(err);
-    }
-
     try {
         const product: Product = {
             name: req.body.name,
             category: req.body.category,
             price: req.body.price,
             description: req.body.description,
+            id: undefined as unknown as number,
         };
         const newProduct = await store.create(product);
-        res.json(newProduct);
+        return res.send(newProduct);
     } catch (err) {
-        res.status(400);
-        res.json(err);
+        res.status(400).json(err);
     }
 };
 
 const destroy = async (req: Request, res: Response) => {
     try {
-        const authorizationHeader = req.headers.authorization as String;
-        const token: string = authorizationHeader.split(" ")[1].slice(1, -1);
-        jwt.verify(token, process.env.TOKEN_SECRET as string);
-    } catch (err) {
-        res.sendStatus(401);
-        return res.json(err);
-    }
-
-    try {
         const deleted = await store.delete(req.body.id);
-        res.json(deleted);
-    } catch (error) {
-        res.status(400);
-        res.json({ error });
+        return res.send(deleted);
+    } catch (err) {
+        res.status(400).json(err);
     }
 };
 
-const productRoutes = (app: express.Application) => {
+const update = async (req: Request, res: Response) => {
+    try {
+        const product: Product = {
+            id: req.body.id,
+            name: req.body.name,
+            category: req.body.category,
+            price: req.body.price,
+            description: req.body.description,
+        };
+
+        const updatedProduct = await store.update(product);
+        return res.send(updatedProduct);
+    } catch (err) {
+        res.status(400).json(err);
+    }
+};
+
+const productRoutes = (app: Application) => {
     app.get("/products", index);
     app.get("/products/:id", show);
-    app.post("/products", create);
-    app.delete("/products", destroy);
+    app.post("/products", verifyAuthToken, create);
+    app.delete("/products", verifyAuthToken, destroy);
+    app.put("/products", verifyAuthToken, update);
 };
 
 export default productRoutes;

@@ -2,13 +2,6 @@ import client from "../database";
 import bcrypt from "bcrypt";
 
 export interface User {
-    firstName: string;
-    lastName: string;
-    userName: string;
-    password: string;
-}
-
-export interface UserReturnType {
     id: number;
     firstName: string;
     lastName: string;
@@ -19,10 +12,10 @@ export interface UserReturnType {
 const { BCRYPT_PASSWORD: pepper, SALT_ROUNDS: saltRounds } = process.env;
 
 export class UserModel {
-    async index(): Promise<UserReturnType[]> {
+    async index(): Promise<User[]> {
         try {
             const conn = await client.connect();
-            const sql = "SELECT * FROM users";
+            const sql = "SELECT id, userName, firstName, lastName FROM users";
 
             const result = await conn.query(sql);
 
@@ -34,9 +27,9 @@ export class UserModel {
         }
     }
 
-    async show(id: number): Promise<UserReturnType> {
+    async show(id: number): Promise<User> {
         try {
-            const sql = "SELECT * FROM users WHERE id=($1)";
+            const sql = "SELECT id, userName, firstName, lastName FROM users WHERE id=($1)";
 
             const conn = await client.connect();
 
@@ -50,10 +43,10 @@ export class UserModel {
         }
     }
 
-    async create(u: User): Promise<UserReturnType> {
+    async create(u: User): Promise<User> {
         try {
             const sql =
-                "INSERT INTO users (firstName, LastName, userName, password) VALUES($1, $2, $3, $4) RETURNING *";
+                "INSERT INTO users (firstName, LastName, userName, password) VALUES($1, $2, $3, $4) RETURNING id, userName, firstName, lastName";
 
             const conn = await client.connect();
 
@@ -71,9 +64,10 @@ export class UserModel {
         }
     }
 
-    async delete(id: number): Promise<UserReturnType> {
+    async delete(id: number): Promise<User> {
         try {
-            const sql = "DELETE FROM users WHERE id=($1)";
+            const sql =
+                "DELETE FROM users WHERE id=($1) RETURNING id, userName, firstName, lastName";
 
             const conn = await client.connect();
 
@@ -89,24 +83,24 @@ export class UserModel {
         }
     }
 
-    async authenticate(username: string, password: string): Promise<UserReturnType | null> {
-        const conn = await client.connect();
-        const sql = "SELECT * FROM users WHERE userName=($1)";
+    async update(u: User) {
+        try {
+            const sql =
+                "UPDATE users SET userName=($2), firstName=($3), lastName=($4), password=($5)  WHERE id=($1) RETURNING id, userName, firstName, lastName";
 
-        const result = await conn.query(sql, [username]);
+            const conn = await client.connect();
 
-        console.log(password + pepper);
+            const hash = bcrypt.hashSync(u.password + pepper, parseInt(saltRounds as string));
 
-        if (result.rows.length) {
+            const result = await conn.query(sql, [u.id, u.userName, u.firstName, u.lastName, hash]);
+
             const user = result.rows[0];
 
-            console.log(user);
+            conn.release();
 
-            if (bcrypt.compareSync(password + pepper, user.password)) {
-                return user;
-            }
+            return user;
+        } catch (err) {
+            throw new Error(`Could not update User ${u.id}. Error: ${err}`);
         }
-
-        return null;
     }
 }
