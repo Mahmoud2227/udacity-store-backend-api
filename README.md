@@ -89,6 +89,8 @@ ENV=dev
 
 `yarn watch` or `npm run watch`
 
+The port used is `3000`.
+
 ## Testing
 
 Run test with
